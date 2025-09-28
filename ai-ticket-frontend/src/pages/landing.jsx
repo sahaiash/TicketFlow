@@ -12,7 +12,6 @@ export default function Landing() {
       fontFamily: "'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif",
       backgroundImage: 'linear-gradient(-45deg, #0f172a, #1e293b, #334155, #475569, #64748b)',
       backgroundSize: '400% 400%',
-      animation: 'gradientShift 12s ease infinite'
     }}>
       {/* Animated Background Orbs */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}>
@@ -25,7 +24,6 @@ export default function Landing() {
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(59, 130, 246, 0.4), transparent)',
           filter: 'blur(40px)',
-          animation: 'float 20s ease-in-out infinite'
         }}></div>
         <div style={{
           position: 'absolute',
@@ -36,7 +34,6 @@ export default function Landing() {
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(96, 165, 250, 0.3), transparent)',
           filter: 'blur(35px)',
-          animation: 'float 25s ease-in-out infinite reverse'
         }}></div>
         <div style={{
           position: 'absolute',
@@ -47,7 +44,6 @@ export default function Landing() {
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(147, 197, 253, 0.2), transparent)',
           filter: 'blur(30px)',
-          animation: 'float 30s ease-in-out infinite',
           transform: 'translateX(-50%)'
         }}></div>
       </div>
@@ -117,20 +113,9 @@ export default function Landing() {
                 border: '2px solid rgba(255, 255, 255, 0.2)',
                 borderRadius: '50px',
                 textDecoration: 'none',
-                transition: 'all 0.3s ease',
                 boxShadow: '0 8px 32px rgba(59, 130, 246, 0.3)',
                 cursor: 'pointer',
                 minWidth: '140px'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.background = 'rgba(255, 255, 255, 0.2)';
-                e.target.style.transform = 'translateY(-2px) scale(1.05)';
-                e.target.style.boxShadow = '0 12px 40px rgba(59, 130, 246, 0.5)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-                e.target.style.transform = 'translateY(0) scale(1)';
-                e.target.style.boxShadow = '0 8px 32px rgba(59, 130, 246, 0.3)';
               }}
             >
               Login
@@ -150,19 +135,9 @@ export default function Landing() {
                 border: 'none',
                 borderRadius: '50px',
                 textDecoration: 'none',
-                transition: 'all 0.3s ease',
                 boxShadow: '0 8px 32px rgba(30, 64, 175, 0.4)',
                 cursor: 'pointer',
                 minWidth: '140px',
-                animation: 'gradientShift 4s ease infinite'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-2px) scale(1.05)';
-                e.target.style.boxShadow = '0 12px 40px rgba(30, 64, 175, 0.6)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0) scale(1)';
-                e.target.style.boxShadow = '0 8px 32px rgba(30, 64, 175, 0.4)';
               }}
             >
               Sign Up Free
@@ -181,23 +156,18 @@ export default function Landing() {
               height: '8px',
               borderRadius: '50%',
               background: '#93c5fd',
-              animation: 'pulse 2s ease-in-out infinite'
             }}></div>
             <div style={{
               width: '8px',
               height: '8px',
               borderRadius: '50%',
               background: '#60a5fa',
-              animation: 'pulse 2s ease-in-out infinite',
-              animationDelay: '0.5s'
             }}></div>
             <div style={{
               width: '8px',
               height: '8px',
               borderRadius: '50%',
               background: '#3b82f6',
-              animation: 'pulse 2s ease-in-out infinite',
-              animationDelay: '1s'
             }}></div>
           </div>
 

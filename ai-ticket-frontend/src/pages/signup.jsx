@@ -75,7 +75,6 @@ function Signup() {
       fontFamily: "'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif",
       backgroundImage: 'linear-gradient(-45deg, #0f172a, #1e293b, #334155, #475569, #64748b)',
       backgroundSize: '400% 400%',
-      animation: 'gradientShift 15s ease infinite'
     }}>
       {/* Background Orbs */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}>
@@ -88,7 +87,6 @@ function Signup() {
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(59, 130, 246, 0.3), transparent)',
           filter: 'blur(40px)',
-          animation: 'float 22s ease-in-out infinite'
         }}></div>
         <div style={{
           position: 'absolute',
@@ -99,7 +97,6 @@ function Signup() {
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(96, 165, 250, 0.2), transparent)',
           filter: 'blur(35px)',
-          animation: 'float 28s ease-in-out infinite reverse'
         }}></div>
         <div style={{
           position: 'absolute',
@@ -110,7 +107,6 @@ function Signup() {
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(147, 197, 253, 0.15), transparent)',
           filter: 'blur(30px)',
-          animation: 'float 35s ease-in-out infinite',
           transform: 'translate(-50%, -50%)'
         }}></div>
       </div>
@@ -134,7 +130,6 @@ function Signup() {
           width: '100%',
           maxWidth: '420px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-          animation: 'slideIn 0.6s ease-out'
         }}>
           
           {/* Header */}
@@ -218,7 +213,6 @@ function Signup() {
                   border: '2px solid rgba(255, 255, 255, 0.2)',
                   borderRadius: '12px',
                   outline: 'none',
-                  transition: 'all 0.3s ease',
                   backdropFilter: 'blur(10px)',
                   boxSizing: 'border-box',
                   height: '50px',
@@ -264,7 +258,6 @@ function Signup() {
                   border: '2px solid rgba(255, 255, 255, 0.2)',
                   borderRadius: '12px',
                   outline: 'none',
-                  transition: 'all 0.3s ease',
                   backdropFilter: 'blur(10px)',
                   boxSizing: 'border-box',
                   height: '50px',
@@ -310,7 +303,6 @@ function Signup() {
                   border: '2px solid rgba(255, 255, 255, 0.2)',
                   borderRadius: '12px',
                   outline: 'none',
-                  transition: 'all 0.3s ease',
                   backdropFilter: 'blur(10px)',
                   boxSizing: 'border-box',
                   height: '50px',
@@ -356,7 +348,6 @@ function Signup() {
                   border: '2px solid rgba(255, 255, 255, 0.2)',
                   borderRadius: '12px',
                   outline: 'none',
-                  transition: 'all 0.3s ease',
                   backdropFilter: 'blur(10px)',
                   boxSizing: 'border-box',
                   height: '50px',
@@ -390,22 +381,8 @@ function Signup() {
                 border: 'none',
                 borderRadius: '12px',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                transition: 'all 0.3s ease',
                 boxShadow: '0 8px 32px rgba(30, 64, 175, 0.4)',
-                animation: loading ? 'none' : 'gradientShift 4s ease infinite',
                 marginTop: '0.5rem'
-              }}
-              onMouseEnter={(e) => {
-                if (!loading) {
-                  e.target.style.transform = 'translateY(-1px)';
-                  e.target.style.boxShadow = '0 12px 40px rgba(30, 64, 175, 0.6)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!loading) {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 8px 32px rgba(30, 64, 175, 0.4)';
-                }
               }}
             >
               {loading ? (
@@ -416,7 +393,6 @@ function Signup() {
                     border: '2px solid rgba(255, 255, 255, 0.3)',
                     borderTop: '2px solid white',
                     borderRadius: '50%',
-                    animation: 'spin 1s linear infinite'
                   }}></div>
                   Creating Account...
                 </div>
@@ -441,10 +417,7 @@ function Signup() {
                   color: '#60a5fa',
                   textDecoration: 'none',
                   fontWeight: '500',
-                  transition: 'color 0.3s ease'
                 }}
-                onMouseEnter={(e) => e.target.style.color = '#93c5fd'}
-                onMouseLeave={(e) => e.target.style.color = '#60a5fa'}
               >
                 Sign in
               </Link>

@@ -117,7 +117,6 @@ export default function TicketsDashboard() {
       fontFamily: "'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif",
       backgroundImage: 'linear-gradient(-45deg, #0f172a, #1e293b, #334155, #475569, #64748b)',
       backgroundSize: '400% 400%',
-      animation: 'gradientShift 15s ease infinite'
     }}>
       {/* Background Orbs */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}>
@@ -130,7 +129,6 @@ export default function TicketsDashboard() {
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(59, 130, 246, 0.2), transparent)',
           filter: 'blur(40px)',
-          animation: 'float 30s ease-in-out infinite'
         }}></div>
         <div style={{
           position: 'absolute',
@@ -141,7 +139,6 @@ export default function TicketsDashboard() {
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(96, 165, 250, 0.15), transparent)',
           filter: 'blur(30px)',
-          animation: 'float 25s ease-in-out infinite reverse'
         }}></div>
       </div>
 
@@ -188,28 +185,37 @@ export default function TicketsDashboard() {
               style={{
                 backgroundImage: 'linear-gradient(135deg, #1e40af, #3b82f6, #60a5fa)',
                 backgroundSize: '200% 200%',
-                animation: 'gradientShift 4s ease infinite',
                 color: 'white',
                 padding: '0.375rem 0.75rem',
                 borderRadius: '6px',
                 textDecoration: 'none',
                 fontWeight: '600',
                 fontSize: '0.75rem',
-                transition: 'all 0.3s ease',
                 boxShadow: '0 1px 4px rgba(30, 64, 175, 0.4)',
                 border: 'none'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-1px)';
-                e.target.style.boxShadow = '0 2px 8px rgba(30, 64, 175, 0.6)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 1px 4px rgba(30, 64, 175, 0.4)';
               }}
             >
               + New
             </Link>
+            {user?.role === 'admin' && (
+              <Link 
+                to="/admin"
+                style={{
+                  backgroundImage: 'linear-gradient(135deg, #dc2626, #ef4444, #f87171)',
+                  backgroundSize: '200% 200%',
+                  color: 'white',
+                  padding: '0.375rem 0.75rem',
+                  borderRadius: '6px',
+                  textDecoration: 'none',
+                  fontWeight: '600',
+                  fontSize: '0.75rem',
+                  boxShadow: '0 1px 4px rgba(220, 38, 38, 0.4)',
+                  border: 'none'
+                }}
+              >
+                🛡️ Admin
+              </Link>
+            )}
             <button 
               onClick={handleLogout}
               style={{
@@ -222,13 +228,6 @@ export default function TicketsDashboard() {
                 fontWeight: '500',
                 fontSize: '0.75rem',
                 cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.background = 'rgba(255, 255, 255, 0.2)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = 'rgba(255, 255, 255, 0.1)';
               }}
             >
               Logout
@@ -331,7 +330,6 @@ export default function TicketsDashboard() {
                 border: '3px solid rgba(255, 255, 255, 0.3)',
                 borderTop: '3px solid white',
                 borderRadius: '50%',
-                animation: 'spin 1s linear infinite',
                 marginRight: '1rem'
               }}></div>
               Loading tickets...
@@ -359,7 +357,6 @@ export default function TicketsDashboard() {
                   textDecoration: 'none',
                   fontWeight: '600',
                   fontSize: '0.9rem',
-                  transition: 'all 0.3s ease',
                   display: 'inline-block'
                 }}
               >
@@ -391,20 +388,7 @@ export default function TicketsDashboard() {
                     padding: '0.75rem',
                     textDecoration: 'none',
                     color: 'white',
-                    transition: 'all 0.3s ease',
                     cursor: 'pointer'
-                  }}
-                  onMouseEnter={(e) => {
-                    const el = e.currentTarget;
-                    el.style.background = 'rgba(255, 255, 255, 0.1)';
-                    el.style.transform = 'translateY(-1px)';
-                    el.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
-                  }}
-                  onMouseLeave={(e) => {
-                    const el = e.currentTarget;
-                    el.style.background = 'rgba(255, 255, 255, 0.05)';
-                    el.style.transform = 'translateY(0)';
-                    el.style.boxShadow = 'none';
                   }}
                 >
                   <div style={{
@@ -470,17 +454,6 @@ export default function TicketsDashboard() {
                           color: '#fca5a5',
                           fontSize: '0.6rem',
                           cursor: deleting === ticket._id ? 'not-allowed' : 'pointer',
-                          transition: 'all 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          if (deleting !== ticket._id) {
-                            e.target.style.background = 'rgba(239, 68, 68, 0.2)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (deleting !== ticket._id) {
-                            e.target.style.background = 'rgba(239, 68, 68, 0.1)';
-                          }
                         }}
                       >
                         {deleting === ticket._id ? '...' : '🗑️'}
