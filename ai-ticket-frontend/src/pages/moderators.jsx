@@ -1,40 +1,36 @@
-
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-export default function TicketsDashboard() {
-  const [tickets, setTickets] = useState([]);
+export default function ModeratorsPage() {
+  const [moderators, setModerators] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
-  const [deleting, setDeleting] = useState(null);
   const navigate = useNavigate();
 
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    // Get user info from localStorage
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
 
-    const fetchTickets = async () => {
+    const fetchModerators = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/tickets`, {
+        const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/tickets/moderators`, {
           headers: { Authorization: `Bearer ${token}` },
           method: "GET",
         });
         
-        const data = await res.json();
-        setTickets(data.tickets || []);
+        if (res.ok) {
+          const data = await res.json();
+          setModerators(data.moderators || []);
+        } else {
+          console.error("Failed to fetch moderators");
+        }
       } catch (err) {
-        console.error("Failed to fetch tickets:", err);
+        console.error("Failed to fetch moderators:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTickets();
+    fetchModerators();
   }, [token]);
 
   const handleLogout = () => {
@@ -43,66 +39,19 @@ export default function TicketsDashboard() {
     navigate("/");
   };
 
-  const getPriorityColor = (priority) => {
-    switch (priority?.toLowerCase()) {
-      case 'urgent': return '#ef4444';
-      case 'high': return '#f97316';
-      case 'medium': return '#eab308';
-      case 'low': return '#22c55e';
+  const getRoleColor = (role) => {
+    switch (role?.toLowerCase()) {
+      case 'admin': return '#ef4444';
+      case 'moderator': return '#3b82f6';
       default: return '#6b7280';
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'done': return '#22c55e';
-      case 'in_progress': return '#3b82f6';
-      case 'todo': return '#eab308';
-      default: return '#6b7280';
-    }
-  };
-
-  const getPriorityEmoji = (priority) => {
-    switch (priority?.toLowerCase()) {
-      case 'urgent': return '🔴';
-      case 'high': return '🟠';
-      case 'medium': return '🟡';
-      case 'low': return '🟢';
-      default: return '⚪';
-    }
-  };
-
-  const handleDeleteTicket = async (ticketId, e) => {
-    e.preventDefault(); // Prevent navigation to ticket details
-    e.stopPropagation();
-    
-    if (!confirm('Are you sure you want to delete this ticket? This action cannot be undone.')) {
-      return;
-    }
-    
-    setDeleting(ticketId);
-    
-    try {
-      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/tickets/${ticketId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      if (response.ok) {
-        // Remove ticket from local state
-        setTickets(tickets.filter(ticket => ticket._id !== ticketId));
-        console.log('Ticket deleted successfully');
-      } else {
-        const data = await response.json();
-        alert(data.message || 'Failed to delete ticket');
-      }
-    } catch (error) {
-      console.error('Error deleting ticket:', error);
-      alert('Failed to delete ticket: ' + error.message);
-    } finally {
-      setDeleting(null);
+  const getRoleEmoji = (role) => {
+    switch (role?.toLowerCase()) {
+      case 'admin': return '🛡️';
+      case 'moderator': return '👥';
+      default: return '👤';
     }
   };
 
@@ -173,15 +122,15 @@ export default function TicketsDashboard() {
               backgroundClip: 'text',
               marginBottom: '0.125rem'
             }}>
-              TicketFlow Dashboard
+              Moderators & Admins
             </h1>
             <p style={{ color: '#94a3b8', fontSize: '0.75rem' }}>
-              Welcome, {user?.email?.split('@')[0] || 'User'}
+              Team members who can manage tickets
             </p>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <Link 
-              to="/ticket"
+              to="/dashboard"
               style={{
                 backgroundImage: 'linear-gradient(135deg, #1e40af, #3b82f6, #60a5fa)',
                 backgroundSize: '200% 200%',
@@ -195,46 +144,8 @@ export default function TicketsDashboard() {
                 border: 'none'
               }}
             >
-              + New
+              ← Dashboard
             </Link>
-            {user?.role === 'moderator' && (
-              <Link 
-                to="/moderators"
-                style={{
-                  backgroundImage: 'linear-gradient(135deg, #7c3aed, #a855f7, #c084fc)',
-                  backgroundSize: '200% 200%',
-                  color: 'white',
-                  padding: '0.375rem 0.75rem',
-                  borderRadius: '6px',
-                  textDecoration: 'none',
-                  fontWeight: '600',
-                  fontSize: '0.75rem',
-                  boxShadow: '0 1px 4px rgba(124, 58, 237, 0.4)',
-                  border: 'none'
-                }}
-              >
-               Moderators
-              </Link>
-            )}
-            {user?.role === 'admin' && (
-              <Link 
-                to="/admin"
-                style={{
-                  backgroundImage: 'linear-gradient(135deg, #dc2626, #ef4444, #f87171)',
-                  backgroundSize: '200% 200%',
-                  color: 'white',
-                  padding: '0.375rem 0.75rem',
-                  borderRadius: '6px',
-                  textDecoration: 'none',
-                  fontWeight: '600',
-                  fontSize: '0.75rem',
-                  boxShadow: '0 1px 4px rgba(220, 38, 38, 0.4)',
-                  border: 'none'
-                }}
-              >
-                Admin Panel
-              </Link>
-            )}
             <button 
               onClick={handleLogout}
               style={{
@@ -254,7 +165,7 @@ export default function TicketsDashboard() {
           </div>
         </div>
 
-        {/* Ultra Compact Stats Row */}
+        {/* Stats Row */}
         <div style={{
           display: 'flex',
           gap: '0.5rem',
@@ -270,7 +181,7 @@ export default function TicketsDashboard() {
             textAlign: 'center'
           }}>
             <p style={{ color: '#ffffff', fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.125rem' }}>
-              {tickets.length}
+              {moderators.length}
             </p>
             <p style={{ color: '#94a3b8', fontSize: '0.65rem' }}>Total</p>
           </div>
@@ -284,9 +195,9 @@ export default function TicketsDashboard() {
             textAlign: 'center'
           }}>
             <p style={{ color: '#ffffff', fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.125rem' }}>
-              {tickets.filter(t => t.status?.toLowerCase() !== 'done').length}
+              {moderators.filter(m => m.role === 'admin').length}
             </p>
-            <p style={{ color: '#94a3b8', fontSize: '0.65rem' }}>Open</p>
+            <p style={{ color: '#94a3b8', fontSize: '0.65rem' }}>Admins</p>
           </div>
           <div style={{
             background: 'rgba(255, 255, 255, 0.1)',
@@ -298,13 +209,13 @@ export default function TicketsDashboard() {
             textAlign: 'center'
           }}>
             <p style={{ color: '#ffffff', fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.125rem' }}>
-              {tickets.filter(t => ['high', 'urgent'].includes(t.priority?.toLowerCase())).length}
+              {moderators.filter(m => m.role === 'moderator').length}
             </p>
-            <p style={{ color: '#94a3b8', fontSize: '0.65rem' }}>Urgent</p>
+            <p style={{ color: '#94a3b8', fontSize: '0.65rem' }}>Moderators</p>
           </div>
         </div>
 
-        {/* Ultra Compact Tickets List */}
+        {/* Moderators List */}
         <div style={{
           background: 'rgba(255, 255, 255, 0.1)',
           backdropFilter: 'blur(20px)',
@@ -328,10 +239,10 @@ export default function TicketsDashboard() {
               fontWeight: '600',
               color: '#e2e8f0'
             }}>
-              Your Tickets
+              Team Members
             </h2>
             <span style={{ color: '#94a3b8', fontSize: '0.7rem' }}>
-              {tickets.length} total
+              {moderators.length} total
             </span>
           </div>
 
@@ -351,36 +262,20 @@ export default function TicketsDashboard() {
                 borderRadius: '50%',
                 marginRight: '1rem'
               }}></div>
-              Loading tickets...
+              Loading moderators...
             </div>
-          ) : tickets.length === 0 ? (
+          ) : moderators.length === 0 ? (
             <div style={{
               textAlign: 'center',
               padding: '3rem',
               color: '#94a3b8'
             }}>
-
               <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '0.5rem', color: '#e2e8f0' }}>
-                No tickets yet
+                No moderators found
               </h3>
-              <p style={{ marginBottom: '1.5rem' }}>
-                Create your first support ticket to get started
+              <p>
+                There are no moderators or admins in the system yet
               </p>
-              <Link 
-                to="/ticket"
-                style={{
-                  backgroundImage: 'linear-gradient(135deg, #1e40af, #3b82f6, #60a5fa)',
-                  color: 'white',
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '12px',
-                  textDecoration: 'none',
-                  fontWeight: '600',
-                  fontSize: '0.9rem',
-                  display: 'inline-block'
-                }}
-              >
-                Create First Ticket
-              </Link>
             </div>
           ) : (
             <div style={{ 
@@ -394,10 +289,9 @@ export default function TicketsDashboard() {
               scrollbarGutter: 'stable both-edges',
               scrollPaddingBottom: '2.5rem'
             }}>
-              {tickets.map((ticket) => (
-                <Link
-                  key={ticket._id}
-                  to={`/ticket/${ticket._id}`}
+              {moderators.map((moderator) => (
+                <div
+                  key={moderator._id}
                   style={{
                     display: 'block',
                     background: 'rgba(255, 255, 255, 0.05)',
@@ -405,7 +299,6 @@ export default function TicketsDashboard() {
                     borderRadius: '6px',
                     border: '1px solid rgba(255, 255, 255, 0.1)',
                     padding: '0.75rem',
-                    textDecoration: 'none',
                     color: 'white',
                     cursor: 'pointer'
                   }}
@@ -413,7 +306,7 @@ export default function TicketsDashboard() {
                   <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'flex-start',
+                    alignItems: 'center',
                     marginBottom: '0.375rem'
                   }}>
                     <div style={{ flex: 1 }}>
@@ -423,60 +316,27 @@ export default function TicketsDashboard() {
                         color: '#ffffff',
                         marginBottom: '0.125rem'
                       }}>
-                        {ticket.title}
+                        {moderator.email}
                       </h3>
                       <p style={{
                         color: '#cbd5e1',
                         fontSize: '0.75rem',
-                        lineHeight: '1.2',
-                        marginBottom: '0.375rem'
+                        lineHeight: '1.2'
                       }}>
-                        {ticket.description?.length > 60 
-                          ? ticket.description.substring(0, 60) + '...' 
-                          : ticket.description}
+                        {moderator.role === 'admin' ? 'System Administrator' : 'Ticket Moderator'}
                       </p>
                     </div>
                     <div style={{ display: 'flex', gap: '0.25rem', marginLeft: '0.5rem', alignItems: 'center' }}>
-                      {ticket.priority && (
-                        <span style={{
-                          backgroundColor: getPriorityColor(ticket.priority),
-                          color: 'white',
-                          padding: '0.125rem 0.375rem',
-                          borderRadius: '8px',
-                          fontSize: '0.65rem',
-                          fontWeight: '600'
-                        }}>
-                          {getPriorityEmoji(ticket.priority)}
-                        </span>
-                      )}
-                      {ticket.status && (
-                        <span style={{
-                          backgroundColor: getStatusColor(ticket.status),
-                          color: 'white',
-                          padding: '0.125rem 0.375rem',
-                          borderRadius: '8px',
-                          fontSize: '0.65rem',
-                          fontWeight: '600'
-                        }}>
-                          {ticket.status === 'IN_PROGRESS' ? 'PROG' : ticket.status}
-                        </span>
-                      )}
-                      {/* Delete Button */}
-                      <button
-                        onClick={(e) => handleDeleteTicket(ticket._id, e)}
-                        disabled={deleting === ticket._id}
-                        style={{
-                          background: deleting === ticket._id ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.1)',
-                          border: '1px solid rgba(239, 68, 68, 0.3)',
-                          borderRadius: '6px',
-                          padding: '0.125rem 0.25rem',
-                          color: '#fca5a5',
-                          fontSize: '0.6rem',
-                          cursor: deleting === ticket._id ? 'not-allowed' : 'pointer',
-                        }}
-                      >
-                        {deleting === ticket._id ? '...' : '🗑️'}
-                      </button>
+                      <span style={{
+                        backgroundColor: getRoleColor(moderator.role),
+                        color: 'white',
+                        padding: '0.125rem 0.375rem',
+                        borderRadius: '8px',
+                        fontSize: '0.65rem',
+                        fontWeight: '600'
+                      }}>
+                        {getRoleEmoji(moderator.role)} {moderator.role.toUpperCase()}
+                      </span>
                     </div>
                   </div>
                   <div style={{
@@ -487,20 +347,18 @@ export default function TicketsDashboard() {
                     fontSize: '0.65rem'
                   }}>
                     <span>
-                      {new Date(ticket.createdAt).toLocaleDateString()}
+                      ID: {moderator._id.slice(-8)}
                     </span>
-                    {ticket.category && (
-                      <span style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        padding: '0.125rem 0.375rem',
-                        borderRadius: '6px',
-                        fontSize: '0.6rem'
-                      }}>
-                        {ticket.category}
-                      </span>
-                    )}
+                    <span style={{
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      padding: '0.125rem 0.375rem',
+                      borderRadius: '6px',
+                      fontSize: '0.6rem'
+                    }}>
+                      Active
+                    </span>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           )}

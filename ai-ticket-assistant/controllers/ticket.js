@@ -162,6 +162,36 @@ export const updateTicket = async (req, res) => {
       return res.status(404).json({ message: "Ticket not found" });
     }
     
+    // If trying to assign ticket to someone
+    if (assignedTo !== undefined) {
+      // Import User model to validate assignment
+      const { default: User } = await import("../models/user.js");
+      
+      // Check if the assigned user exists and is a moderator or admin
+      const assignedUser = await User.findById(assignedTo);
+      if (!assignedUser) {
+        return res.status(404).json({ 
+          message: "Assigned user not found" 
+        });
+      }
+      
+      if (!["moderator", "admin"].includes(assignedUser.role)) {
+        return res.status(400).json({ 
+          message: "Tickets can only be assigned to moderators or admins" 
+        });
+      }
+      
+      // If current user is a moderator (not admin), check if they can assign this ticket
+      if (user.role === "moderator") {
+        // Moderator can only assign tickets that are currently assigned to them
+        if (!ticket.assignedTo || ticket.assignedTo.toString() !== user._id.toString()) {
+          return res.status(403).json({ 
+            message: "Moderators can only reassign tickets that are currently assigned to them" 
+          });
+        }
+      }
+    }
+    
     // Build update object
     const updateData = {};
     if (status !== undefined) updateData.status = status;
@@ -228,6 +258,38 @@ export const deleteTicket = async (req, res) => {
     
   } catch (error) {
     console.error("Error deleting ticket:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const getModerators = async (req, res) => {
+  try {
+    const user = req.user;
+    
+    // Check permissions - only moderators and admins can see the list of moderators
+    if (user.role === "user") {
+      return res.status(403).json({ 
+        message: "Only moderators and admins can view the list of moderators" 
+      });
+    }
+    
+    // Import User model
+    const { default: User } = await import("../models/user.js");
+    
+    // Get all moderators and admins
+    const moderators = await User.find(
+      { role: { $in: ["moderator", "admin"] } },
+      { email: 1, _id: 1, role: 1 }
+    ).sort({ email: 1 });
+    
+    console.log("Found moderators:", moderators.length);
+    
+    return res.status(200).json({ 
+      moderators 
+    });
+    
+  } catch (error) {
+    console.error("Error fetching moderators:", error.message);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };

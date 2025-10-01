@@ -8,6 +8,7 @@ import Signup from './pages/signup.jsx'
 import Login from './pages/login.jsx'
 import Admin from './pages/admin.jsx'
 import Landing from './pages/landing.jsx'
+import Moderators from './pages/moderators.jsx'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
@@ -67,6 +68,15 @@ createRoot(document.getElementById('root')).render(
         element={
           <CheckAuth protectedRoute={true}>
             <Admin/>
+          </CheckAuth>
+        }
+      />
+      {/* this is the moderators page */}
+      <Route
+        path="/moderators"
+        element={
+          <CheckAuth protectedRoute={true}>
+            <Moderators/>
           </CheckAuth>
         }
       />

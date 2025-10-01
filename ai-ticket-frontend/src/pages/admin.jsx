@@ -288,7 +288,7 @@ export default function AdminPanel() {
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <Link 
-              to="/tickets"
+              to="/dashboard"
               style={{
                 backgroundImage: 'linear-gradient(135deg, #1e40af, #3b82f6, #60a5fa)',
                 color: 'white',
@@ -300,7 +300,7 @@ export default function AdminPanel() {
                 boxShadow: '0 1px 4px rgba(30, 64, 175, 0.4)'
               }}
             >
-              ← Back to Tickets
+              ← Back to Dashboard
             </Link>
             <div style={{
               background: 'rgba(255, 255, 255, 0.1)',

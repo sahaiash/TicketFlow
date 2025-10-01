@@ -66,15 +66,15 @@ function CreateTicket() {
       const fetchAssignableUsers = async () => {
         try {
           const token = localStorage.getItem("token");
-          const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/assignable-users`, {
+          const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/tickets/moderators`, {
             headers: {
               "Authorization": `Bearer ${token}`
             }
           });
           
           if (response.ok) {
-            const users = await response.json();
-            setAssignableUsers(users);
+            const data = await response.json();
+            setAssignableUsers(data.moderators || []);
           }
         } catch (err) {
           console.error("Failed to fetch assignable users:", err);
