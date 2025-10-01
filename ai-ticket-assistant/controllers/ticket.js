@@ -163,6 +163,8 @@ export const updateTicket = async (req, res) => {
     }
     
     // If trying to assign ticket to someone
+    let willNotifyAssignee = false;
+    let newAssigneeUser = null;
     if (assignedTo !== undefined) {
       // Import User model to validate assignment
       const { default: User } = await import("../models/user.js");
@@ -190,6 +192,12 @@ export const updateTicket = async (req, res) => {
           });
         }
       }
+
+      // Decide if we should notify (only when the assignee actually changes)
+      if (!ticket.assignedTo || ticket.assignedTo.toString() !== assignedTo) {
+        willNotifyAssignee = true;
+        newAssigneeUser = assignedUser;
+      }
     }
     
     // Build update object
@@ -206,6 +214,27 @@ export const updateTicket = async (req, res) => {
     ).populate("assignedTo", ["email", "_id"]).populate("createdBy", ["email", "_id"]);
     
     console.log("Ticket updated successfully:", ticketId);
+
+    // If reassigned, send an email notification to the new assignee
+    try {
+      if (willNotifyAssignee && newAssigneeUser?.email) {
+        const { default: User } = await import("../models/user.js");
+        const { sendMail } = await import("../utils/mailer.js");
+        const adminUser = await User.findOne({ role: "admin" });
+        const adminEmail = adminUser ? adminUser.email : undefined;
+
+        await sendMail(
+          newAssigneeUser.email,
+          "New Ticket Assigned - TicketFlow",
+          `Hello ${newAssigneeUser.email.split('@')[0]},\n\nA ticket has been assigned to you.\n\nTitle: ${updatedTicket.title}\nPriority: ${updatedTicket.priority || 'Medium'}\nStatus: ${updatedTicket.status}\n\nDescription:\n${updatedTicket.description}\n\nPlease log into TicketFlow to review and take action.\n`,
+          adminEmail
+        );
+        console.log("✅ Manual assignment email sent to:", newAssigneeUser.email);
+      }
+    } catch (notifyErr) {
+      console.error("⚠️ Failed to send manual assignment email:", notifyErr.message);
+      // Do not fail the API response due to email issues
+    }
     
     return res.status(200).json({ 
       message: "Ticket updated successfully",

@@ -60,9 +60,9 @@ function CreateTicket() {
     }
   }, [id, isViewMode]);
 
-  // Fetch assignable users if user is moderator or admin
+  // Fetch assignable users only if user is admin
   useEffect(() => {
-    if (user && (user.role === 'moderator' || user.role === 'admin') && isViewMode) {
+    if (user && user.role === 'admin' && isViewMode) {
       const fetchAssignableUsers = async () => {
         try {
           const token = localStorage.getItem("token");
@@ -90,6 +90,12 @@ function CreateTicket() {
     if (error) setError('');
     if (success) setSuccess('');
   }
+
+  // Permissions: who can edit status?
+  const canEditStatus = !!user && (
+    user.role === 'admin' ||
+    (user.role === 'moderator' && ticketData?.assignedTo?._id === user._id)
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -430,14 +436,14 @@ function CreateTicket() {
                   border: '1px solid rgba(59, 130, 246, 0.2)'
                 }}>
                   <h4 style={{ color: '#60a5fa', fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.75rem' }}>
-                    Moderator Controls
+                    {user?.role === 'admin' ? 'Admin Controls' : 'Moderator Controls'}
                   </h4>
                   
                   <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
                     <select
                       value={ticketData.status || ''}
                       onChange={(e) => handleUpdateTicket({ status: e.target.value })}
-                      disabled={updating}
+                      disabled={updating || !canEditStatus}
                       style={{
                         flex: 1,
                         padding: '0.5rem',
@@ -453,27 +459,30 @@ function CreateTicket() {
                       <option value="DONE">Done</option>
                     </select>
                     
-                    <select
-                      value={ticketData.assignedTo?._id || ''}
-                      onChange={(e) => handleUpdateTicket({ assignedTo: e.target.value || null })}
-                      disabled={updating}
-                      style={{
-                        flex: 1,
-                        padding: '0.5rem',
-                        fontSize: '0.8rem',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        borderRadius: '6px',
-                        color: 'white'
-                      }}
-                    >
-                      <option value="">Unassigned</option>
-                      {assignableUsers.map(assignUser => (
-                        <option key={assignUser._id} value={assignUser._id}>
-                          {assignUser.email}
-                        </option>
-                      ))}
-                    </select>
+                    {/* Assignment dropdown - only for admins */}
+                    {user && user.role === 'admin' && (
+                      <select
+                        value={ticketData.assignedTo?._id || ''}
+                        onChange={(e) => handleUpdateTicket({ assignedTo: e.target.value || null })}
+                        disabled={updating}
+                        style={{
+                          flex: 1,
+                          padding: '0.5rem',
+                          fontSize: '0.8rem',
+                          background: 'rgba(255, 255, 255, 0.1)',
+                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          borderRadius: '6px',
+                          color: 'white'
+                        }}
+                      >
+                        <option value="">Unassigned</option>
+                        {assignableUsers.map(assignUser => (
+                          <option key={assignUser._id} value={assignUser._id}>
+                            {assignUser.email}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
                   
                   {updating && (

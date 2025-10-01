@@ -1,7 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
-import { inngest } from "../inngest/client.js";
 import { sendMail } from "../utils/mailer.js";
 
 export const signup = async (req, res) => {
@@ -19,27 +18,16 @@ export const signup = async (req, res) => {
     );
     console.log("Token created successfully");
 
-    // Send welcome email event to Inngest
+    // Send welcome email directly from controller (no Inngest)
     try {
-      await inngest.send({
-        name: "user/signup",
-        data: {
-          email,
-        },
-      });
-      console.log("Welcome email event sent successfully");
-    } catch (inngestError) {
-      console.error("Welcome email event failed (but signup still completed):", inngestError.message);
-      
-      // Send welcome email directly using existing sendMail function
-      setTimeout(async () => {
-        try {
-          await sendMail(email, "Welcome to TicketFlow!", `Welcome ${email}! Your account is ready.`);
-          console.log("✅ Welcome email sent directly");
-        } catch (emailError) {
-          console.error("❌ Direct email failed:", emailError.message);
-        }
-      }, 1000);
+      const adminUser = await User.findOne({ role: "admin" });
+      const adminEmail = adminUser ? adminUser.email : null;
+      const subject = `Welcome to TicketFlow - Your Account is Ready!`;
+      const message = `Hello ${email.split('@')[0]},\n\nWelcome to TicketFlow! Your account has been successfully created.\n\nYou can now:\n• Create support tickets for IT issues\n• Track the status of your requests\n• Receive updates on ticket progress\n• Access our AI-powered support system\n\nGetting Started:\n1. Log into TicketFlow\n2. Create your first support ticket\n3. Track your ticket progress in the dashboard\n\nIf you have any questions, feel free to reach out to our support team.\n\nBest regards,\nTicketFlow Admin Team`;
+      await sendMail(email, subject, message, adminEmail);
+      console.log("✅ Welcome email sent from admin:", adminEmail);
+    } catch (emailError) {
+      console.error("❌ Direct welcome email failed:", emailError.message);
     }
 
     res.json({ user, token });
