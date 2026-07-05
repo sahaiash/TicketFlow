@@ -1,31 +1,13 @@
-import User from "../../models/user.js"
+import { ticketService } from "../../services/ticket.service.js";
+import { handleError } from "../../utils/appError.js";
 
 export const getModerators = async (req, res) => {
-    try {
-      const user = req.user;
-      
-      // Check permissions - only moderators and admins can see the list of moderators
-      if (user.role === "user") {
-        return res.status(403).json({ 
-          message: "Only moderators and admins can view the list of moderators" 
-        });
-      }
-      
- 
-      // Get all moderators and admins
-      const moderators = await User.find(
-        { role: { $in: ["moderator", "admin"] } },
-        { email: 1, _id: 1, role: 1 }
-      ).sort({ email: 1 });
-      
-      console.log("Found moderators:", moderators.length);
-      
-      return res.status(200).json({ 
-        moderators 
-      });
-      
-    } catch (error) {
-      console.error("Error fetching moderators:", error.message);
-      return res.status(500).json({ message: "Internal Server Error" });
-    }
-  };
+  try {
+    const moderators = await ticketService.listModerators({
+      role: req.user.role,
+    });
+    return res.status(200).json({ moderators });
+  } catch (error) {
+    return handleError(res, error, "Error fetching moderators");
+  }
+};
