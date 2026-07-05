@@ -20,4 +20,38 @@ export const userRepository = {
   findFirstAdmin() {
     return User.findOne({ role: "admin" });
   },
+
+  // --- user/auth feature (from controllers/user.js) ---
+
+  // from signup — create a user (password already hashed by the service).
+  create(data) {
+    return User.create(data);
+  },
+
+  // from login / updateUser — full doc (includes password) for auth checks.
+  findByEmail(email) {
+    return User.findOne({ email });
+  },
+
+  // from updateUser — partial update by email.
+  updateByEmail(email, patch) {
+    return User.updateOne({ email }, patch);
+  },
+
+  // from getUsers — everyone, password stripped.
+  findAllPublic() {
+    return User.find().select("-password");
+  },
+
+  // from getAssignableUsers — moderators + admins with a few public fields.
+  findAssignable() {
+    return User.find({ role: { $in: ["moderator", "admin"] } }).select(
+      "_id email role skills"
+    );
+  },
+
+  // from getCurrentUser — one user by id, password stripped.
+  findByIdPublic(id) {
+    return User.findById(id).select("-password");
+  },
 };
