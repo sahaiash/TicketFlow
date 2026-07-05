@@ -12,11 +12,36 @@ export default function TicketsDashboard() {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    // Get user info from localStorage
+    // Fetch fresh user info from API to get current role
+    const fetchCurrentUser = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+          method: "GET",
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          const freshUser = data.user;
+          setUser(freshUser);
+          // Update localStorage with fresh user data (including updated role)
+          localStorage.setItem("user", JSON.stringify(freshUser));
+        } else {
+          // Fallback to localStorage if API fails
+          const userData = localStorage.getItem("user");
+          if (userData) {
+            setUser(JSON.parse(userData));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch current user:", err);
+        // Fallback to localStorage
     const userData = localStorage.getItem("user");
     if (userData) {
       setUser(JSON.parse(userData));
     }
+      }
+    };
 
     const fetchTickets = async () => {
       try {
@@ -34,6 +59,8 @@ export default function TicketsDashboard() {
       }
     };
 
+    // Fetch user info first, then tickets
+    fetchCurrentUser();
     fetchTickets();
   }, [token]);
 
@@ -284,7 +311,7 @@ export default function TicketsDashboard() {
             textAlign: 'center'
           }}>
             <p style={{ color: '#ffffff', fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.125rem' }}>
-              {tickets.filter(t => t.status?.toLowerCase() !== 'done').length}
+              {tickets .filter(t => t.status?.toLowerCase() !== 'done').length}
             </p>
             <p style={{ color: '#94a3b8', fontSize: '0.65rem' }}>Open</p>
           </div>

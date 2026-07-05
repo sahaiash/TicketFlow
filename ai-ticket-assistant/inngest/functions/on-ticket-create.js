@@ -33,7 +33,7 @@ export const onTicketCreated = inngest.createFunction(
       const relatedSkills = await step.run("ai-processing", async () => {
         let skills = [];
         if (aiResponse) {
-          console.log("✅ AI analysis successful, updating ticket with:", aiResponse);
+          console.log(" AI analysis successful, updating ticket with:", aiResponse);
           await Ticket.findByIdAndUpdate(ticket._id, {
             priority: !["low", "medium", "high"].includes(aiResponse.priority)
               ? "medium"
@@ -110,13 +110,13 @@ Best regards,
 TicketFlow Admin Team`,
             adminEmail
           );
-          console.log("✅ Assignment email sent to:", moderator.email);
+          console.log(" Assignment email sent to:", moderator.email);
         }
       });
 
       return { success: true };
     } catch (err) {
-      console.error("❌ Error running the step", err.message);
+      console.error(" Error running the step", err.message);
       return { success: false };
     }
   }

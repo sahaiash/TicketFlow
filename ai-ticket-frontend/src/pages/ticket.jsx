@@ -21,12 +21,40 @@ function CreateTicket() {
   const [assignableUsers, setAssignableUsers] = useState([]);
   const [user, setUser] = useState(null);
 
-  // Get user info from localStorage
+  // Fetch fresh user info from API to get current role
   useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+          method: "GET",
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          const freshUser = data.user;
+          setUser(freshUser);
+          // Update localStorage with fresh user data (including updated role)
+          localStorage.setItem("user", JSON.stringify(freshUser));
+        } else {
+          // Fallback to localStorage if API fails
     const userData = localStorage.getItem("user");
     if (userData) {
       setUser(JSON.parse(userData));
     }
+        }
+      } catch (err) {
+        console.error("Failed to fetch current user:", err);
+        // Fallback to localStorage
+        const userData = localStorage.getItem("user");
+        if (userData) {
+          setUser(JSON.parse(userData));
+        }
+      }
+    };
+
+    fetchCurrentUser();
   }, []);
 
   // Fetch ticket data if in view mode
@@ -832,4 +860,4 @@ function CreateTicket() {
   );
 }
 
-export default CreateTicket
+export default CreateTicket;

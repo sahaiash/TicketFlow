@@ -111,8 +111,26 @@ export default function AdminPanel() {
       setFormData({ role: "", skills: "" });
       await fetchUsers();
       
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccessMessage(""), 3000);
+      // If updating own role, refresh current user info
+      const currentUserEmail = JSON.parse(localStorage.getItem("user") || "{}").email;
+      if (editingUser === currentUserEmail) {
+        try {
+          const userRes = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            localStorage.setItem("user", JSON.stringify(userData.user));
+            // Show notification that user needs to refresh page for full effect
+            setSuccessMessage(`User ${editingUser} updated successfully! Your role has changed - please refresh the page to see all changes.`);
+          }
+        } catch (err) {
+          console.error("Failed to refresh current user:", err);
+        }
+      }
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(""), 5000);
     } catch (err) {
       console.error("Update failed", err);
       setErrorMessage("Update failed. Please try again.");
@@ -150,8 +168,25 @@ export default function AdminPanel() {
       setSuccessMessage(`User ${userEmail} promoted to ${newRole}!`);
       await fetchUsers();
       
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccessMessage(""), 3000);
+      // If updating own role, refresh current user info
+      const currentUserEmail = JSON.parse(localStorage.getItem("user") || "{}").email;
+      if (userEmail === currentUserEmail) {
+        try {
+          const userRes = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            localStorage.setItem("user", JSON.stringify(userData.user));
+            setSuccessMessage(`User ${userEmail} promoted to ${newRole}! Your role has changed - please refresh the page to see all changes.`);
+          }
+        } catch (err) {
+          console.error("Failed to refresh current user:", err);
+        }
+      }
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(""), 5000);
     } catch (err) {
       console.error("Update failed", err);
       setErrorMessage("Update failed. Please try again.");

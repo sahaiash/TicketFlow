@@ -50,7 +50,7 @@ app.use(
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log("MongoDB connected ✅");
-    app.listen(PORT, () => console.log(`🚀 Server at ${PORT}`));
+    console.log("MongoDB connected ");
+    app.listen(PORT, () => console.log(` Server at ${PORT}`));
   })
-  .catch((err) => console.error("❌ MongoDB error: ", err));
+  .catch((err) => console.error("MongoDB error: ", err));

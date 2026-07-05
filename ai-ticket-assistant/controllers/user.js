@@ -14,7 +14,8 @@ export const signup = async (req, res) => {
 
     const token = jwt.sign(
       { _id: user._id, role: user.role },
-      process.env.JWT_SECRET
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' } // Token expires in 24 hours
     );
     console.log("Token created successfully");
 
@@ -25,9 +26,9 @@ export const signup = async (req, res) => {
       const subject = `Welcome to TicketFlow - Your Account is Ready!`;
       const message = `Hello ${email.split('@')[0]},\n\nWelcome to TicketFlow! Your account has been successfully created.\n\nYou can now:\n• Create support tickets for IT issues\n• Track the status of your requests\n• Receive updates on ticket progress\n• Access our AI-powered support system\n\nGetting Started:\n1. Log into TicketFlow\n2. Create your first support ticket\n3. Track your ticket progress in the dashboard\n\nIf you have any questions, feel free to reach out to our support team.\n\nBest regards,\nTicketFlow Admin Team`;
       await sendMail(email, subject, message, adminEmail);
-      console.log("✅ Welcome email sent from admin:", adminEmail);
+      console.log(" Welcome email sent from admin:", adminEmail);
     } catch (emailError) {
-      console.error("❌ Direct welcome email failed:", emailError.message);
+      console.error(" Direct welcome email failed:", emailError.message);
     }
 
     res.json({ user, token });
@@ -61,7 +62,8 @@ export const login = async (req, res) => {
 
     const token = jwt.sign(
       { _id: user._id, role: user.role },
-      process.env.JWT_SECRET
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' } // Token expires in 24 hours
     );
 
     res.json({ user, token });
@@ -130,5 +132,31 @@ export const getAssignableUsers = async (req, res) => {
     return res.json(users);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch assignable users", details: error.message });
+  }
+};
+
+// Get current authenticated user info (with fresh role from database)
+export const getCurrentUser = async (req, res) => {
+  try {
+    // req.user is already populated by authenticate middleware with current role from DB
+    const user = await User.findById(req.user._id).select("-password");
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    
+    // Return fresh user data (role will be current from database)
+    return res.json({
+      user: {
+        _id: user._id,
+        email: user.email,
+        role: user.role, // Current role from database
+        skills: user.skills,
+        status: user.status,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch user info", details: error.message });
   }
 };

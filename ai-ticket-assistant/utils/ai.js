@@ -5,12 +5,12 @@ const analyzeTicket = async (ticket) => {
   try {
     // Check if API key exists
     if (!process.env.GEMINI_API_KEY) {
-      console.log("❌ No Gemini API key found");
+      console.log(" No Gemini API key found");
       return null;
     }
 
-    console.log("🤖 Starting AI analysis for ticket:", ticket.title);
-    console.log("🔑 Using API key:", process.env.GEMINI_API_KEY ? "Present" : "Missing");
+    console.log(" Starting AI analysis for ticket:", ticket.title);
+    console.log(" Using API key:", process.env.GEMINI_API_KEY ? "Present" : "Missing");
     
     const supportAgent = createAgent({
       model: gemini({
@@ -32,7 +32,7 @@ IMPORTANT:
 - The format must be a raw JSON object.`,
     });
 
-    console.log("🚀 Running AI agent...");
+    console.log(" Running AI agent...");
     const response = await supportAgent.run(`Analyze this support ticket and return only a JSON object:
 
 Title: ${ticket.title}
@@ -47,7 +47,7 @@ Return JSON in this exact format:
 }`);
 
     const raw = response.output[0].context;
-    console.log("🔍 Raw AI response:", raw.substring(0, 300) + "...");
+    console.log("🔍Raw AI response:", raw.substring(0, 300) + "...");
 
     try {
       // Try multiple parsing approaches
@@ -66,18 +66,18 @@ Return JSON in this exact format:
       }
       
       const result = JSON.parse(jsonString);
-      console.log("✅ AI analysis successful:", result);
+      console.log(" AI analysis successful:", result);
       return result;
     } catch (parseError) {
-      console.log("❌ Failed to parse JSON from AI response:", parseError.message);
+      console.log(" Failed to parse JSON from AI response:", parseError.message);
       console.log("Raw response:", raw);
       throw parseError;
     }
   } catch (error) {
-    console.error("❌ AI Analysis Error:", error.message);
+    console.error(" AI Analysis Error:", error.message);
     
     // Return a fallback analysis
-    console.log("🔄 Using fallback analysis");
+    console.log(" Using fallback analysis");
     return {
       summary: `User reported: ${ticket.title}`,
       priority: "medium",
