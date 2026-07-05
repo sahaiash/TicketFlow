@@ -10,7 +10,7 @@ export const ticketRepository = {
     return Ticket.create(data);
   },
 
-  // from getTicket.js — preserves the moderator/admin vs user branch AND the
+  // from getTicket.js - preserves the moderator/admin vs user branch AND the
   // different populate shapes each branch used.
   findForList({ role, userId }) {
     if (role !== "user") {
@@ -28,17 +28,17 @@ export const ticketRepository = {
     return Ticket.findById(id);
   },
 
-  // from deleteTicket.js — a user may only find a ticket they created.
+  // from deleteTicket.js - a user may only find a ticket they created.
   findOwnedById(id, userId) {
     return Ticket.findOne({ _id: id, createdBy: userId });
   },
 
-  // from createTicket.js direct-AI fallback — plain update, no options/populate.
+  // from createTicket.js direct-AI fallback - plain update, no options/populate.
   update(id, patch) {
     return Ticket.findByIdAndUpdate(id, patch);
   },
 
-  // from updateTicket.js — returns the updated doc, populated as before.
+  // from updateTicket.js - returns the updated doc, populated as before.
   updateById(id, patch) {
     return Ticket.findByIdAndUpdate(id, patch, {
       new: true,

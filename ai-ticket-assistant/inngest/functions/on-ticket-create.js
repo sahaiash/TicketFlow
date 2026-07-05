@@ -26,14 +26,14 @@ export const onTicketCreated = inngest.createFunction(
       });
 
       const aiResponse = await step.run("ai-analysis", async () => {
-        console.log("🤖 Running AI analysis for ticket:", ticket.title);
+        console.log("Running AI analysis for ticket:", ticket.title);
         return await analyzeTicket(ticket);
       });
 
       const relatedSkills = await step.run("ai-processing", async () => {
         let skills = [];
         if (aiResponse) {
-          console.log(" AI analysis successful, updating ticket with:", aiResponse);
+          console.log("AI analysis successful, updating ticket with:", aiResponse);
           await Ticket.findByIdAndUpdate(ticket._id, {
             priority: !["low", "medium", "high"].includes(aiResponse.priority)
               ? "medium"
@@ -44,7 +44,7 @@ export const onTicketCreated = inngest.createFunction(
           });
           skills = aiResponse.relatedSkills || [];
         } else {
-          console.log("⚠️ AI analysis failed, using basic processing");
+          console.log("AI analysis failed, using basic processing");
           // Basic fallback processing
           await Ticket.findByIdAndUpdate(ticket._id, {
             priority: "medium",
@@ -110,13 +110,13 @@ Best regards,
 TicketFlow Admin Team`,
             adminEmail
           );
-          console.log(" Assignment email sent to:", moderator.email);
+          console.log("Assignment email sent to:", moderator.email);
         }
       });
 
       return { success: true };
     } catch (err) {
-      console.error(" Error running the step", err.message);
+      console.error("Error running the step", err.message);
       return { success: false };
     }
   }

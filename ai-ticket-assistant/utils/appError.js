@@ -1,6 +1,6 @@
 // Small error helper so the service layer can signal an HTTP status without
 // touching req/res. Controllers throw/propagate AppError; handleError maps it.
-// Phase A bridge — replaced by a central error-handling middleware in Phase B.
+// Phase A bridge - replaced by a central error-handling middleware in Phase B.
 
 export class AppError extends Error {
   // body (optional): the exact JSON payload to return. When omitted the

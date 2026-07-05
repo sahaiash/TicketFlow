@@ -5,11 +5,11 @@ import { sendMail } from "../utils/mailer.js";
 import { AppError } from "../utils/appError.js";
 
 // Business-logic / orchestration layer for tickets.
-// No req/res here — methods throw AppError to signal HTTP status; the thin
+// No req/res here - methods throw AppError to signal HTTP status; the thin
 // controllers translate that. Logic relocated verbatim from the old
 // controllers (Phase A refactor) so behaviour is identical.
 export const ticketService = {
-  // from getTicket.js — scoping (user vs moderator/admin) lives in the repo.
+  // from getTicket.js - scoping (user vs moderator/admin) lives in the repo.
   listTickets({ role, userId }) {
     return ticketRepository.findForList({ role, userId });
   },
@@ -29,7 +29,7 @@ export const ticketService = {
     });
     console.log("Ticket created successfully:", newTicket._id);
 
-    // Queue AI processing via Inngest (best-effort — ticket already created).
+    // Queue AI processing via Inngest (best-effort - ticket already created).
     try {
       await inngest.send({
         name: "ticket/created",
@@ -43,7 +43,7 @@ export const ticketService = {
       );
     }
 
-    // PHASE B: remove — this duplicates the Inngest job and races with it.
+    // PHASE B: remove - this duplicates the Inngest job and races with it.
     // Preserved as-is for the behaviour-preserving Phase A refactor.
     try {
       const { default: analyzeTicket } = await import("../utils/ai.js");
@@ -132,7 +132,7 @@ export const ticketService = {
     const updatedTicket = await ticketRepository.updateById(ticketId, updateData);
     console.log("Ticket updated successfully:", ticketId);
 
-    // Best-effort assignment email — never fails the request.
+    // Best-effort assignment email - never fails the request.
     try {
       if (willNotifyAssignee && newAssigneeUser?.email) {
         const adminUser = await userRepository.findFirstAdmin();

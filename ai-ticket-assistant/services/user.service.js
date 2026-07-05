@@ -5,7 +5,7 @@ import { sendMail } from "../utils/mailer.js";
 import { AppError } from "../utils/appError.js";
 
 // Business-logic / orchestration layer for users & auth.
-// No req/res here — methods throw AppError to signal HTTP status + body; the
+// No req/res here - methods throw AppError to signal HTTP status + body; the
 // thin controllers translate that. Logic relocated verbatim from the old
 // controllers/user.js (Phase A refactor) so behaviour is identical.
 //
@@ -39,7 +39,7 @@ export const userService = {
 
     const token = signToken(user);
 
-    // Best-effort welcome email — never fails signup.
+    // Best-effort welcome email - never fails signup.
     try {
       const adminUser = await userRepository.findFirstAdmin();
       const adminEmail = adminUser ? adminUser.email : null;

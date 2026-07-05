@@ -4,7 +4,7 @@ export const sendMail = async (to, subject, text, fromEmail = null) => {
   try {
     // Skip sending email if admin is assigning ticket to themselves
     if (fromEmail && fromEmail === to) {
-      console.log("📧 Skipping email - admin assigned ticket to themselves:", to);
+      console.log("Skipping email - admin assigned ticket to themselves:", to);
       return {
         messageId: `skipped-${Date.now()}`,
         accepted: [],
@@ -38,7 +38,7 @@ export const sendMail = async (to, subject, text, fromEmail = null) => {
     console.log("Message sent:", info.messageId);
     return info;
   } catch (error) {
-    console.error("❌ Mail error", error.message);
+    console.error("Mail error", error.message);
     throw error;
   }
 };
