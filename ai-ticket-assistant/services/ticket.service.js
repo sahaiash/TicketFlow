@@ -29,7 +29,9 @@ export const ticketService = {
     });
     console.log("Ticket created successfully:", newTicket._id);
 
-    // Queue AI processing via Inngest (best-effort - ticket already created).
+    // Queue AI processing via Inngest - the single, durable path that analyses
+    // the ticket and assigns a moderator (see inngest/functions/on-ticket-create).
+    // Best-effort: the ticket already exists even if enqueueing fails.
     try {
       await inngest.send({
         name: "ticket/created",
@@ -41,37 +43,6 @@ export const ticketService = {
         "Inngest event failed (but ticket still created):",
         inngestError.message
       );
-    }
-
-    // PHASE B: remove - this duplicates the Inngest job and races with it.
-    // Preserved as-is for the behaviour-preserving Phase A refactor.
-    try {
-      const { default: analyzeTicket } = await import("../utils/ai.js");
-      setTimeout(async () => {
-        try {
-          const aiResponse = await analyzeTicket(newTicket);
-          if (aiResponse) {
-            await ticketRepository.update(newTicket._id, {
-              priority: !["low", "medium", "high"].includes(aiResponse.priority)
-                ? newTicket.priority || "medium"
-                : aiResponse.priority,
-              helpfulNotes: aiResponse.helpfulNotes,
-              status: "IN_PROGRESS",
-              relatedSkills: aiResponse.relatedSkills,
-            });
-          } else {
-            await ticketRepository.update(newTicket._id, {
-              helpfulNotes: `Issue: ${newTicket.description}. Category: ${newTicket.category}. Please review and assist the user.`,
-              status: "IN_PROGRESS",
-              relatedSkills: ["Technical Support"],
-            });
-          }
-        } catch (aiError) {
-          console.error("Direct AI processing error:", aiError.message);
-        }
-      }, 2000);
-    } catch (directAIError) {
-      console.error("Failed to start direct AI processing:", directAIError.message);
     }
 
     return newTicket;

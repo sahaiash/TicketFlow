@@ -33,11 +33,6 @@ export const ticketRepository = {
     return Ticket.findOne({ _id: id, createdBy: userId });
   },
 
-  // from createTicket.js direct-AI fallback - plain update, no options/populate.
-  update(id, patch) {
-    return Ticket.findByIdAndUpdate(id, patch);
-  },
-
   // from updateTicket.js - returns the updated doc, populated as before.
   updateById(id, patch) {
     return Ticket.findByIdAndUpdate(id, patch, {
