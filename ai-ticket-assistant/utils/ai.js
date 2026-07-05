@@ -46,7 +46,20 @@ Return JSON in this exact format:
   "relatedSkills": ["skill1", "skill2"]
 }`);
 
-    const raw = response.output[0].context;
+    // agent-kit returns output as an array of messages; the text lives on
+    // `content`, which can be a string or an array of { type, text } parts.
+    const msg = response.output?.[0];
+    const raw =
+      typeof msg?.content === "string"
+        ? msg.content
+        : Array.isArray(msg?.content)
+          ? msg.content.map((part) => part.text ?? "").join("")
+          : "";
+
+    if (!raw) {
+      throw new Error("Empty AI response: " + JSON.stringify(response.output));
+    }
+
     console.log("Raw AI response:", raw.substring(0, 300) + "...");
 
     try {
