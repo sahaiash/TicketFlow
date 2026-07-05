@@ -27,7 +27,8 @@ export const userService = {
       user = await userRepository.create({ email, password: hashed, skills });
     } catch (error) {
       // Duplicate email -> same 400 body the controller returned before.
-      if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
+      // P2002 is Prisma's unique-constraint violation (email is the only unique).
+      if (error.code === "P2002") {
         throw new AppError("Email already exists", 400, {
           error: "Email already exists",
           message:
@@ -68,7 +69,9 @@ export const userService = {
       });
     }
 
-    return { user, token: signToken(user) };
+    // Never return the password hash to the client.
+    const { password: _pw, ...safeUser } = user;
+    return { user: safeUser, token: signToken(user) };
   },
 
   // from updateUser

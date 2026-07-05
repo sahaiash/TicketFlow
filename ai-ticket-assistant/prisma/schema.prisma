@@ -1,0 +1,73 @@
+// Prisma schema for the AI Ticket system (PostgreSQL).
+// See docs/adr/0001-database-choice.md for the rationale.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  moderator
+  admin
+}
+
+enum Status {
+  TODO
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum Priority {
+  low
+  medium
+  high
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  password  String
+  role      Role     @default(user)
+  skills    String[] @default([])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  createdTickets  Ticket[] @relation("TicketCreatedBy")
+  assignedTickets Ticket[] @relation("TicketAssignedTo")
+
+  @@map("users")
+}
+
+model Ticket {
+  id            String    @id @default(uuid()) @db.Uuid
+  title         String
+  description   String
+  category      String?
+  status        Status    @default(TODO)
+  priority      Priority  @default(medium)
+  helpfulNotes  String?   @map("helpful_notes")
+  relatedSkills String[]  @default([]) @map("related_skills")
+  deadline      DateTime?
+
+  // Ticket -> creator. Deleting a user removes their tickets.
+  createdById String @map("created_by") @db.Uuid
+  createdBy   User   @relation("TicketCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+
+  // Ticket -> assignee. Deleting the assignee just unassigns (no orphan).
+  assignedToId String? @map("assigned_to") @db.Uuid
+  assignedTo   User?   @relation("TicketAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([createdById, createdAt])
+  @@index([status, createdAt])
+  @@index([assignedToId])
+  @@map("tickets")
+}

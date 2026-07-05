@@ -1,57 +1,99 @@
-import User from "../models/user.js";
+import { prisma } from "../config/prisma.js";
 
-// Data-access layer for the User model - only the queries the ticket flow needs.
-// Relocated verbatim from the old ticket controllers (Phase A refactor).
+// Data-access layer for the User model (PostgreSQL via Prisma).
+// Adapter mappers translate Postgres `id` -> legacy `_id`. Email is normalised
+// to lowercase so uniqueness is effectively case-insensitive.
+
+const norm = (email) => (email ?? "").toLowerCase().trim();
+
+// public shape (never includes password)
+const toPublic = (u) =>
+  u && {
+    _id: u.id,
+    email: u.email,
+    role: u.role,
+    skills: u.skills,
+    createdAt: u.createdAt,
+    updatedAt: u.updatedAt,
+  };
+
+// includes password - only for auth (login) comparison
+const toWithPassword = (u) => u && { ...toPublic(u), password: u.password };
+
 export const userRepository = {
-  // from getModerators.js - moderators + admins, minimal projection, sorted.
-  findModerators() {
-    return User.find(
-      { role: { $in: ["moderator", "admin"] } },
-      { email: 1, _id: 1, role: 1 }
-    ).sort({ email: 1 });
+  // --- ticket flow ---
+
+  // moderators + admins, minimal fields, sorted by email
+  async findModerators() {
+    const rows = await prisma.user.findMany({
+      where: { role: { in: ["moderator", "admin"] } },
+      select: { id: true, email: true, role: true },
+      orderBy: { email: "asc" },
+    });
+    return rows.map((u) => ({ _id: u.id, email: u.email, role: u.role }));
   },
 
-  // from updateTicket.js - used to validate an assignee exists / check role.
-  findById(id) {
-    return User.findById(id);
+  // a moderator whose skills overlap the ticket's related skills (replaces the
+  // old fragile regex join with a native array overlap)
+  async findModeratorBySkills(skills) {
+    if (!skills?.length) return null;
+    const u = await prisma.user.findFirst({
+      where: { role: "moderator", skills: { hasSome: skills } },
+    });
+    return toPublic(u);
   },
 
-  // from updateTicket.js - the admin used as the email "from" address.
-  findFirstAdmin() {
-    return User.findOne({ role: "admin" });
+  // used to validate an assignee and to resolve the current user's role (auth)
+  async findById(id) {
+    const u = await prisma.user.findUnique({ where: { id } });
+    return toPublic(u);
   },
 
-  // --- user/auth feature (from controllers/user.js) ---
-
-  // from signup - create a user (password already hashed by the service).
-  create(data) {
-    return User.create(data);
+  // the admin used as the email "from" address / assignment fallback
+  async findFirstAdmin() {
+    const u = await prisma.user.findFirst({ where: { role: "admin" } });
+    return toPublic(u);
   },
 
-  // from login / updateUser - full doc (includes password) for auth checks.
-  findByEmail(email) {
-    return User.findOne({ email });
+  // --- user/auth feature ---
+
+  async create({ email, password, skills = [] }) {
+    const u = await prisma.user.create({
+      data: { email: norm(email), password, skills },
+    });
+    return toPublic(u); // no password leaked back to the client
   },
 
-  // from updateUser - partial update by email.
-  updateByEmail(email, patch) {
-    return User.updateOne({ email }, patch);
+  // full doc incl. password - for login comparison only
+  async findByEmail(email) {
+    const u = await prisma.user.findUnique({ where: { email: norm(email) } });
+    return toWithPassword(u);
   },
 
-  // from getUsers - everyone, password stripped.
-  findAllPublic() {
-    return User.find().select("-password");
+  async updateByEmail(email, patch) {
+    await prisma.user.update({ where: { email: norm(email) }, data: patch });
   },
 
-  // from getAssignableUsers - moderators + admins with a few public fields.
-  findAssignable() {
-    return User.find({ role: { $in: ["moderator", "admin"] } }).select(
-      "_id email role skills"
-    );
+  async findAllPublic() {
+    const rows = await prisma.user.findMany();
+    return rows.map(toPublic);
   },
 
-  // from getCurrentUser - one user by id, password stripped.
-  findByIdPublic(id) {
-    return User.findById(id).select("-password");
+  async findAssignable() {
+    const rows = await prisma.user.findMany({
+      where: { role: { in: ["moderator", "admin"] } },
+      select: { id: true, email: true, role: true, skills: true },
+    });
+    return rows.map((u) => ({
+      _id: u.id,
+      email: u.email,
+      role: u.role,
+      skills: u.skills,
+    }));
+  },
+
+  async findByIdPublic(id) {
+    const u = await prisma.user.findUnique({ where: { id } });
+    return toPublic(u);
   },
 };

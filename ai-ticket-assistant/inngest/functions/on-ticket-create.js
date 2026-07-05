@@ -1,9 +1,11 @@
 import { inngest } from "../client.js";
-import Ticket from "../../models/ticket.js";
-import User from "../../models/user.js";
 import { NonRetriableError } from "inngest";
+import { ticketRepository } from "../../repositories/ticket.repository.js";
+import { userRepository } from "../../repositories/user.repository.js";
 import { sendMail } from "../../utils/mailer.js";
 import analyzeTicket from "../../utils/ai.js";
+
+const VALID_PRIORITIES = ["low", "medium", "high"];
 
 export const onTicketCreated = inngest.createFunction(
   { id: "on-ticket-created", retries: 2 },
@@ -12,9 +14,9 @@ export const onTicketCreated = inngest.createFunction(
     try {
       const { ticketId } = event.data;
 
-      //fetch ticket from DB
+      // fetch ticket from DB
       const ticket = await step.run("fetch-ticket", async () => {
-        const ticketObject = await Ticket.findById(ticketId);
+        const ticketObject = await ticketRepository.findById(ticketId);
         if (!ticketObject) {
           throw new NonRetriableError("Ticket not found");
         }
@@ -22,7 +24,7 @@ export const onTicketCreated = inngest.createFunction(
       });
 
       await step.run("update-ticket-status", async () => {
-        await Ticket.findByIdAndUpdate(ticket._id, { status: "TODO" });
+        await ticketRepository.updateFields(ticket._id, { status: "TODO" });
       });
 
       const aiResponse = await step.run("ai-analysis", async () => {
@@ -34,19 +36,18 @@ export const onTicketCreated = inngest.createFunction(
         let skills = [];
         if (aiResponse) {
           console.log("AI analysis successful, updating ticket with:", aiResponse);
-          await Ticket.findByIdAndUpdate(ticket._id, {
-            priority: !["low", "medium", "high"].includes(aiResponse.priority)
-              ? "medium"
-              : aiResponse.priority,
+          // Normalise priority case ("High" -> "high") before the enum check.
+          const p = aiResponse.priority?.toLowerCase();
+          await ticketRepository.updateFields(ticket._id, {
+            priority: VALID_PRIORITIES.includes(p) ? p : "medium",
             helpfulNotes: aiResponse.helpfulNotes,
             status: "IN_PROGRESS",
-            relatedSkills: aiResponse.relatedSkills,
+            relatedSkills: aiResponse.relatedSkills || [],
           });
           skills = aiResponse.relatedSkills || [];
         } else {
           console.log("AI analysis failed, using basic processing");
-          // Basic fallback processing
-          await Ticket.findByIdAndUpdate(ticket._id, {
+          await ticketRepository.updateFields(ticket._id, {
             priority: "medium",
             helpfulNotes: `Issue reported: ${ticket.description}. Please review and assist the user.`,
             status: "IN_PROGRESS",
@@ -58,21 +59,11 @@ export const onTicketCreated = inngest.createFunction(
       });
 
       const moderator = await step.run("assign-moderator", async () => {
-        let user = await User.findOne({
-          role: "moderator",
-          skills: {
-            $elemMatch: {
-              $regex: relatedSkills.join("|"),
-              $options: "i",
-            },
-          },
-        });
+        let user = await userRepository.findModeratorBySkills(relatedSkills);
         if (!user) {
-          user = await User.findOne({
-            role: "admin",
-          });
+          user = await userRepository.findFirstAdmin();
         }
-        await Ticket.findByIdAndUpdate(ticket._id, {
+        await ticketRepository.updateFields(ticket._id, {
           assignedTo: user?._id || null,
         });
         return user;
@@ -80,29 +71,29 @@ export const onTicketCreated = inngest.createFunction(
 
       await step.run("send-email-notification", async () => {
         if (moderator) {
-          const finalTicket = await Ticket.findById(ticket._id);
-          
+          const finalTicket = await ticketRepository.findById(ticket._id);
+
           // Get admin email to use as sender
-          const adminUser = await User.findOne({ role: "admin" });
+          const adminUser = await userRepository.findFirstAdmin();
           const adminEmail = adminUser ? adminUser.email : null;
-          
+
           await sendMail(
             moderator.email,
             "New Ticket Assigned - TicketFlow",
-            `Hello ${moderator.email.split('@')[0]},
+            `Hello ${moderator.email.split("@")[0]},
 
 A new support ticket has been assigned to you:
 
 Title: ${finalTicket.title}
-Priority: ${finalTicket.priority || 'Medium'}
-Category: ${finalTicket.category || 'General'}
+Priority: ${finalTicket.priority || "Medium"}
+Category: ${finalTicket.category || "General"}
 Status: ${finalTicket.status}
 
 Description:
 ${finalTicket.description}
 
 ${finalTicket.helpfulNotes ? `AI Analysis Notes:
-${finalTicket.helpfulNotes}` : ''}
+${finalTicket.helpfulNotes}` : ""}
 
 Please log into TicketFlow to review and resolve this ticket.
 

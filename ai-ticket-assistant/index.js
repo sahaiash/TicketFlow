@@ -1,7 +1,7 @@
 import express from "express";
-import mongoose from "mongoose";
 import cors from "cors";
 import { serve } from "inngest/express";
+import { prisma } from "./config/prisma.js";
 import userRoutes from "./routes/user.js";
 import ticketRoutes from "./routes/ticket.js";
 import { inngest } from "./inngest/client.js";
@@ -47,10 +47,10 @@ app.use(
   })
 );
 
-mongoose
-  .connect(process.env.MONGO_URI)
+prisma
+  .$connect()
   .then(() => {
-    console.log("MongoDB connected ");
-    app.listen(PORT, () => console.log(` Server at ${PORT}`));
+    console.log("PostgreSQL connected");
+    app.listen(PORT, () => console.log(`Server at ${PORT}`));
   })
-  .catch((err) => console.error("MongoDB error: ", err));
+  .catch((err) => console.error("PostgreSQL error:", err));
