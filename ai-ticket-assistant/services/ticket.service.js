@@ -62,6 +62,18 @@ export const ticketService = {
       throw new AppError("Ticket not found", 404);
     }
 
+    // Scope: an admin may update any ticket; a moderator only tickets assigned
+    // to them. This closes the gap where any moderator could change the status
+    // or priority of ANY ticket (previously enforced only on the frontend).
+    const isAdmin = role === "admin";
+    const isAssignedMod =
+      role === "moderator" &&
+      ticket.assignedTo &&
+      ticket.assignedTo.toString() === userId.toString();
+    if (!isAdmin && !isAssignedMod) {
+      throw new AppError("You can only update tickets assigned to you", 403);
+    }
+
     // Assignment handling + notification decision.
     let willNotifyAssignee = false;
     let newAssigneeUser = null;
