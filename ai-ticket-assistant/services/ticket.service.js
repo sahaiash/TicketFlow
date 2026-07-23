@@ -120,6 +120,12 @@ export const ticketService = {
       if (willNotifyAssignee && newAssigneeUser?.email) {
         const adminUser = await userRepository.findFirstAdmin();
         const adminEmail = adminUser ? adminUser.email : undefined;
+        // Business rule (moved out of the mailer): don't notify an admin who
+        // assigned the ticket to themselves.
+        if (adminEmail && adminEmail === newAssigneeUser.email) {
+          console.log("Skipping email - admin assigned ticket to themselves:", adminEmail);
+          return updatedTicket;
+        }
         await sendMail(
           newAssigneeUser.email,
           "New Ticket Assigned - TicketFlow",

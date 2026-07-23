@@ -73,9 +73,16 @@ export const onTicketCreated = inngest.createFunction(
         if (moderator) {
           const finalTicket = await ticketRepository.findById(ticket._id);
 
-          // Get admin email to use as sender
+          // Admin email is used as the reply-to address on the notification.
           const adminUser = await userRepository.findFirstAdmin();
           const adminEmail = adminUser ? adminUser.email : null;
+
+          // Business rule (moved out of the mailer): don't notify an admin
+          // about a ticket the system just assigned to them.
+          if (adminEmail && adminEmail === moderator.email) {
+            console.log("Skipping email - ticket auto-assigned to the admin:", adminEmail);
+            return;
+          }
 
           await sendMail(
             moderator.email,

@@ -40,17 +40,18 @@ export const userService = {
 
     const token = signToken(user);
 
-    // Best-effort welcome email - never fails signup.
-    try {
+    // Best-effort welcome email - fire-and-forget so signup doesn't pay the
+    // SMTP round-trip. Failures are logged, never surfaced to the client.
+    (async () => {
       const adminUser = await userRepository.findFirstAdmin();
       const adminEmail = adminUser ? adminUser.email : null;
       const subject = `Welcome to TicketFlow - Your Account is Ready!`;
       const message = `Hello ${email.split("@")[0]},\n\nWelcome to TicketFlow! Your account has been successfully created.\n\nYou can now:\n• Create support tickets for IT issues\n• Track the status of your requests\n• Receive updates on ticket progress\n• Access our AI-powered support system\n\nGetting Started:\n1. Log into TicketFlow\n2. Create your first support ticket\n3. Track your ticket progress in the dashboard\n\nIf you have any questions, feel free to reach out to our support team.\n\nBest regards,\nTicketFlow Admin Team`;
       await sendMail(email, subject, message, adminEmail);
-      console.log("Welcome email sent from admin:", adminEmail);
-    } catch (emailError) {
-      console.error("Direct welcome email failed:", emailError.message);
-    }
+      console.log("Welcome email sent (reply-to admin):", adminEmail);
+    })().catch((emailError) =>
+      console.error("Welcome email failed:", emailError.message)
+    );
 
     return { user, token };
   },

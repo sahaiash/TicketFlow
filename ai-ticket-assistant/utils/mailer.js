@@ -1,38 +1,36 @@
 import nodemailer from "nodemailer";
 
-export const sendMail = async (to, subject, text, fromEmail = null) => {
+// SMTP_* preferred; MAILTRAP_SMTP_* kept as fallback so the existing .env works.
+const host = process.env.SMTP_HOST || process.env.MAILTRAP_SMTP_HOST;
+const port = Number(process.env.SMTP_PORT || process.env.MAILTRAP_SMTP_PORT);
+const user = process.env.SMTP_USER || process.env.MAILTRAP_SMTP_USER;
+const pass = process.env.SMTP_PASS || process.env.MAILTRAP_SMTP_PASS;
+
+// One pooled transporter for the whole app - avoids a fresh TCP/TLS handshake
+// per email. `secure` follows the SMTPS convention: implicit TLS on 465,
+// STARTTLS otherwise.
+const transporter = nodemailer.createTransport({
+  host,
+  port,
+  secure: port === 465,
+  auth: { user, pass },
+  pool: true,
+  maxConnections: 5,
+});
+
+// Always send from our own (verified) address - sending "from" an arbitrary
+// user's domain fails SPF/DKIM/DMARC on real providers. The acting user's
+// address goes in replyTo instead, so replies still reach them.
+const FROM = '"TicketFlow" <support@ticketflow.com>';
+
+export const sendMail = async (to, subject, text, replyToEmail = null) => {
   try {
-    // Skip sending email if admin is assigning ticket to themselves
-    if (fromEmail && fromEmail === to) {
-      console.log("Skipping email - admin assigned ticket to themselves:", to);
-      return {
-        messageId: `skipped-${Date.now()}`,
-        accepted: [],
-        rejected: [],
-        pending: [],
-        response: "Email skipped - admin assigned to themselves"
-      };
-    }
-
-    const transporter = nodemailer.createTransport({
-      host: process.env.MAILTRAP_SMTP_HOST,
-      port: process.env.MAILTRAP_SMTP_PORT,
-      secure: false, // true for 465, false for other ports
-      auth: {
-        user: process.env.MAILTRAP_SMTP_USER,
-        pass: process.env.MAILTRAP_SMTP_PASS,
-      },
-    });
-
-    // Use admin email as sender if provided, otherwise use default
-    const senderEmail = fromEmail || 'support@ticketflow.com';
-    const senderName = fromEmail ? 'TicketFlow Admin' : 'TicketFlow Support';
-
     const info = await transporter.sendMail({
-      from: `"${senderName}" <${senderEmail}>`,
+      from: FROM,
       to,
       subject,
       text,
+      ...(replyToEmail ? { replyTo: replyToEmail } : {}),
     });
 
     console.log("Message sent:", info.messageId);
