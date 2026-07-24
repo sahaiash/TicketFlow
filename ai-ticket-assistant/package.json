@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon index.js",
-    "inngest-dev": "npx inngest-cli@latest dev",
+    "inngest-dev": "npx inngest-cli@latest dev -u http://localhost:5001/api/inngest",
     "start": "node index.js",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
