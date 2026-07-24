@@ -27,10 +27,12 @@ export const onTicketCreated = inngest.createFunction(
         await ticketRepository.updateFields(ticket._id, { status: "TODO" });
       });
 
-      const aiResponse = await step.run("ai-analysis", async () => {
-        console.log("Running AI analysis for ticket:", ticket.title);
-        return await analyzeTicket(ticket);
-      });
+      // analyzeTicket runs an agent-kit agent, which uses its own Inngest step
+      // tooling when executed inside a function. It must NOT be wrapped in our
+      // own step.run (nested steps are not supported - NESTING_STEPS), so we
+      // call it directly in the function body and let agent-kit manage its step.
+      console.log("Running AI analysis for ticket:", ticket.title);
+      const aiResponse = await analyzeTicket(ticket);
 
       const relatedSkills = await step.run("ai-processing", async () => {
         let skills = [];
