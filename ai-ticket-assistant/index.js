@@ -43,7 +43,7 @@ app.use(
   serve({
     client: inngest,
     functions: [onTicketCreated],
-    // No signing key needed for development mode
+    // In production the SDK reads INNGEST_SIGNING_KEY from the environment.
   })
 );
 
