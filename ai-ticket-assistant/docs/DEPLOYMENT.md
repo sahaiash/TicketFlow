@@ -52,7 +52,8 @@ git push origin main
   | Key | Value |
   |---|---|
   | `NODE_ENV` | `production`  (flips Inngest client to Cloud mode) |
-  | `DATABASE_URL` | Neon pooled URL |
+  | `DATABASE_URL` | Neon **pooled** URL (host has `-pooler`) - app runtime |
+  | `DIRECT_URL` | Neon **direct** URL (host without `-pooler`) - migrations |
   | `JWT_SECRET` | long random string |
   | `JWT_EXPIRES_IN` | `24h` |
   | `GEMINI_API_KEY` | your key |
